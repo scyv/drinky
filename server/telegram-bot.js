@@ -25,15 +25,27 @@ export class TelegramBot {
                             if (!Updates.findOne({update_id: update.update_id})) {
                                 if (update.message) {
                                     const chatId = update.message.chat.id;
-                                    const message = update.message.text;
+                                    const message = update.message.text.toLowerCase();
                                     if (message === "/start") {
                                         ctx.cmdStart(update.update_id, chatId, ctx);
-                                    } else if (message.toLowerCase().indexOf("/connect") === 0) {
+                                    } else if (message.indexOf("/connect") === 0) {
                                         ctx.cmdConnect(message, chatId, ctx);
-                                    } else if (message.toLowerCase().match(/^[0-9]+m?l/)) {
+                                    } else if (message.indexOf("/100ml") === 0) {
+                                        ctx.cmdAddDrink(chatId, "100ml", ctx);
+                                    } else if (message.indexOf("/200ml") === 0) {
+                                        ctx.cmdAddDrink(chatId, "200ml", ctx);
+                                    } else if (message.indexOf("/300ml") === 0) {
+                                        ctx.cmdAddDrink(chatId, "300ml", ctx);
+                                    } else if (message.indexOf("/500ml") === 0) {
+                                        ctx.cmdAddDrink(chatId, "500ml", ctx);
+                                    } else if (message.match(/^[0-9.]+m?l/)) {
                                         ctx.cmdAddDrink(chatId, message, ctx);
-                                    } else if (message.toLowerCase().match(/^how much/)) {
+                                    } else if (message.match(/how much/i)) {
                                         ctx.cmdPrintStats(chatId, ctx);
+                                    } else if (message.match(/stats/)) {
+                                        ctx.cmdPrintStats(chatId, ctx);
+                                    } else if (message.match(/pause/)) {
+                                        ctx.cmdPauseForToday(chatId, ctx);
                                     }
                                 }
                                 Updates.insert(update);
@@ -77,6 +89,18 @@ export class TelegramBot {
         }
     }
 
+    cmdPauseForToday(chatId, ctx) {
+        Chats.find({chatId: chatId}).forEach((chat) => {
+            const drink = {
+                amount: 0,
+                time: moment().endOf("day"),
+                user: chat.user
+            };
+            Drinks.insert(drink);
+            ctx.sendToChat(chatId, "Ok. Heute werden wir Dich nicht mehr erinnern.");
+        });
+    }
+
     cmdAddDrink(chatId, message, ctx) {
         Chats.find({chatId: chatId}).forEach((chat) => {
 
@@ -91,7 +115,15 @@ export class TelegramBot {
 
                 Drinks.insert(drink);
 
-                ctx.sendToChat(chatId, "Super! Heute schon " + ctx.getDailySum().toFixed(2) + " l getrunken!");
+                const dailySum = ctx.getDailySum();
+                const formattedSum = dailySum.toFixed(2);
+                if (dailySum > 1.5) {
+                    ctx.sendToChat(chatId, "Super! Heute schon " + formattedSum + " l getrunken!");
+                } else if (dailySum > 1) {
+                    ctx.sendToChat(chatId, "Heute schon " + formattedSum + " l getrunken!");
+                } else {
+                    ctx.sendToChat(chatId, "Heute bisher " + formattedSum + " l getrunken! Da geht noch mehr!");
+                }
             }
         );
     }
@@ -111,5 +143,9 @@ export class TelegramBot {
             sum += drink.amount / 1000;
         });
         return sum;
+    }
+
+    getDailyAvg() {
+
     }
 }
