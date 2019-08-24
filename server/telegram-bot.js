@@ -83,7 +83,7 @@ export class TelegramBot {
                 chatId: chatId,
                 user: userId
             });
-            ctx.sendToChat(chatId, "Ok! Wir werden Dich jetzt immer Erinnern, wenn es wieder Zeit ist, zu trinken.");
+            ctx.sendToChat(chatId, "Ok! Wir werden Dich jetzt immer erinnern, wenn es wieder Zeit ist, zu trinken.");
         } else {
             ctx.sendToChat(chatId, "Bitte gib hinter /connect deine UserId an, z.B: /connect abc1234");
         }
@@ -114,7 +114,7 @@ export class TelegramBot {
                 };
 
                 Drinks.insert(drink);
-
+                Chats.update(chat._id, {$set: {reminderSent: false}});
                 const dailySum = ctx.getDailySum();
                 const formattedSum = dailySum.toFixed(2);
                 if (dailySum > 1.5) {
