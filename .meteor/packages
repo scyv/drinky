@@ -27,3 +27,5 @@ check
 ostrio:cstorage
 http
 twbs:bootstrap
+peerlibrary:reactive-publish
+jcbernack:reactive-aggregate

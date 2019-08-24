@@ -34,4 +34,9 @@
 
 <template name="userid">
     <h1>{{currentUser._id}}</h1>
+    {{> chart}}
+</template>
+
+<template name="chart">
+    <canvas id="chart"></canvas>
 </template>
